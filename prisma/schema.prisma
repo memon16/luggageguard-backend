@@ -1,0 +1,168 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CLIENT
+  ADMIN
+  OPERATOR
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PICKED_UP
+  IN_STORAGE
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum NotificationType {
+  EMAIL
+  SMS
+  PUSH
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  phone         String?  @unique
+  firstName     String
+  lastName      String
+  passwordHash  String?
+  googleId      String?  @unique
+  appleId       String?  @unique
+  profileImage  String?
+  role          UserRole @default(CLIENT)
+  emailVerified Boolean  @default(false)
+  phoneVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  bookings      Booking[]
+  assignedBookings Booking[] @relation("OperatorBookings")
+  notifications Notification[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  
+  // Pickup details
+  pickupAddress   String
+  pickupLat       Float
+  pickupLng       Float
+  pickupDate      DateTime
+  pickupTimeSlot  String
+  
+  // Storage details
+  numberOfBags    Int
+  storageDays     Int
+  
+  // Delivery details
+  deliveryAddress String
+  deliveryLat     Float
+  deliveryLng     Float
+  deliveryDate    DateTime
+  deliveryTimeSlot String
+  
+  // Pricing
+  basePrice       Decimal       @db.Decimal(10, 2)
+  storagePrice    Decimal       @db.Decimal(10, 2)
+  totalPrice      Decimal       @db.Decimal(10, 2)
+  discountApplied Decimal       @db.Decimal(10, 2) @default(0)
+  
+  // Status tracking
+  status          BookingStatus @default(PENDING)
+  operatorId      String?
+  operator        User?         @relation("OperatorBookings", fields: [operatorId], references: [id])
+  
+  pickupConfirmedAt   DateTime?
+  storageConfirmedAt  DateTime?
+  deliveryConfirmedAt DateTime?
+  
+  // Notes
+  specialInstructions String?
+  internalNotes       String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  payment         Payment?
+  
+  @@index([userId])
+  @@index([status])
+  @@index([pickupDate])
+  @@index([deliveryDate])
+}
+
+model Payment {
+  id                     String        @id @default(uuid())
+  bookingId              String        @unique
+  booking                Booking       @relation(fields: [bookingId], references: [id])
+  stripePaymentIntentId  String        @unique
+  amount                 Decimal       @db.Decimal(10, 2)
+  currency               String        @default("USD")
+  status                 PaymentStatus @default(PENDING)
+  paymentMethod          String?
+  receiptUrl             String?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  
+  @@index([stripePaymentIntentId])
+  @@index([status])
+}
+
+model PricingConfig {
+  id                    String    @id @default(uuid())
+  basePricePerBag       Decimal   @db.Decimal(10, 2)
+  pricePerDayPerBag     Decimal   @db.Decimal(10, 2)
+  roundTripDiscount     Decimal   @db.Decimal(5, 2)
+  multiDayDiscountTiers Json
+  isActive              Boolean   @default(true)
+  effectiveFrom         DateTime  @default(now())
+  effectiveTo           DateTime?
+  createdAt             DateTime  @default(now())
+  
+  @@index([isActive])
+}
+
+model Notification {
+  id        String             @id @default(uuid())
+  userId    String
+  user      User               @relation(fields: [userId], references: [id])
+  bookingId String?
+  type      NotificationType
+  status    NotificationStatus @default(PENDING)
+  subject   String?
+  message   String
+  sentAt    DateTime?
+  createdAt DateTime           @default(now())
+  
+  @@index([userId])
+  @@index([status])
+}
