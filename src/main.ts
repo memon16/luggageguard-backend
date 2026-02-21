@@ -12,7 +12,9 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'http://localhost:3001',
-      process.env.FRONTEND_URL || 'https://luggageguard.vercel.app',
+       process.env.FRONTEND_URL || 'https://luggageguard-frontend.vercel.app',
+'https://luggageguard-frontend.vercel.app',
+'https://luggageguard-frontend-dxrj2bxi9-memon16s-projects.vercel.app', 
     ],
     credentials: true,
   });
