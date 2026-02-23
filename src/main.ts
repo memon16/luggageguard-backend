@@ -43,6 +43,14 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || 4000;
+  app.enableCors({
+  origin: [
+    'https://luggageguard-frontend.vercel.app',
+    'https://luggageguard-frontend-git-main-memon16s-projects.vercel.app',
+    /https:\/\/luggageguard-frontend-.*\.vercel\.app$/
+  ],
+  credentials: true,
+});
   await app.listen(port);
 
   console.log(`🚀 Application is running on: http://localhost:${port}`);
