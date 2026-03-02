@@ -28,7 +28,7 @@ export class BookingsService {
     let discountApplied = 0;
 
     // Aplicar descuento por múltiples días
-    const discountTiers = pricing.multiDayDiscountTiers as any[];
+    const discountTiers = (pricing.multiDayDiscountTiers as any[]) || [];
     for (const tier of discountTiers) {
       if (createBookingDto.storageDays >= tier.days) {
         discountApplied = totalPrice * (tier.discount / 100);
