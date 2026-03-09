@@ -11,4 +11,9 @@ export class PaymentsController {
   createPaymentIntent(@Body() body: { bookingId: string }, @Request() req: any) {
     return this.paymentsService.createPaymentIntent(body.bookingId, req.user.id);
   }
+
+  @Post('confirm')
+  confirmPayment(@Body() body: { paymentIntentId: string; bookingId: string }) {
+    return this.paymentsService.confirmPayment(body.paymentIntentId, body.bookingId);
+  }
 }

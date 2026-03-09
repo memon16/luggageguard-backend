@@ -1,9 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
+import Stripe from 'stripe';
 
 @Injectable()
 export class PaymentsService {
-  constructor(private prisma: PrismaService) {}
+  private stripe: Stripe;
+
+  constructor(private prisma: PrismaService) {
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-01-27.acacia',
+    });
+  }
 
   async createPaymentIntent(bookingId: string, userId: string) {
     const booking = await this.prisma.booking.findFirst({
@@ -14,22 +21,42 @@ export class PaymentsService {
       throw new NotFoundException('Reserva no encontrada');
     }
 
-    // Simular pago exitoso por ahora
-    const payment = await this.prisma.payment.create({
-      data: {
-        bookingId,
-        amount: booking.totalPrice,
-        currency: 'usd',
-        status: 'SUCCEEDED',
-        stripePaymentIntentId: `pi_test_${Date.now()}`,
-      },
+    const paymentIntent = await this.stripe.paymentIntents.create({
+      amount: Math.round(Number(booking.totalPrice) * 100),
+      currency: 'usd',
+      metadata: { bookingId, userId },
     });
 
-    await this.prisma.booking.update({
-      where: { id: bookingId },
-      data: { status: 'CONFIRMED' },
-    });
+    return { 
+      success: true, 
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+      amount: booking.totalPrice
+    };
+  }
 
-    return { success: true, payment };
+  async confirmPayment(paymentIntentId: string, bookingId: string) {
+    const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (paymentIntent.status === 'succeeded') {
+      const payment = await this.prisma.payment.create({
+        data: {
+          bookingId,
+          amount: paymentIntent.amount / 100,
+          currency: 'usd',
+          status: 'SUCCEEDED',
+          stripePaymentIntentId: paymentIntentId,
+        },
+      });
+
+      await this.prisma.booking.update({
+        where: { id: bookingId },
+        data: { status: 'CONFIRMED' },
+      });
+
+      return { success: true, payment };
+    }
+
+    return { success: false, status: paymentIntent.status };
   }
 }
