@@ -148,18 +148,18 @@ export class BookingsService {
     };
   }
 
-  async updateStatus(id: string, userId: string, status: string) {
-    const booking = await this.prisma.booking.findFirst({
-      where: { id, userId },
-    });
+ async updateStatus(id: string, userId: string, status: string) {
+  const booking = await this.prisma.booking.findFirst({
+    where: { id, userId },
+  });
 
-    if (!booking) {
-      throw new NotFoundException('Booking not found');
-    }
-
-    return this.prisma.booking.update({
-      where: { id },
-      data: { status },
-    });
+  if (!booking) {
+    throw new NotFoundException('Booking not found');
   }
+
+  return this.prisma.booking.update({
+    where: { id },
+    data: { status: status as any },
+  });
+}
 }
