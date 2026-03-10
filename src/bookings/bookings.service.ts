@@ -72,6 +72,7 @@ export class BookingsService {
             email: true,
             firstName: true,
             lastName: true,
+            phone: true,
           },
         },
         payment: true,
