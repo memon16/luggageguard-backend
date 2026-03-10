@@ -7,17 +7,15 @@ export class BookingsService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, createBookingDto: CreateBookingDto) {
-    // Obtener configuración de precios activa
     const pricing = await this.prisma.pricingConfig.findFirst({
       where: { isActive: true },
       orderBy: { effectiveFrom: 'desc' },
     });
 
     if (!pricing) {
-      throw new NotFoundException('Configuración de precios no encontrada');
+      throw new NotFoundException('Pricing configuration not found');
     }
 
-    // Calcular precios
     const basePrice = Number(pricing.basePricePerBag) * createBookingDto.numberOfBags;
     const storagePrice = 
       Number(pricing.pricePerDayPerBag) * 
@@ -27,7 +25,6 @@ export class BookingsService {
     let totalPrice = basePrice + storagePrice;
     let discountApplied = 0;
 
-    // Aplicar descuento por múltiples días
     const discountTiers = (pricing.multiDayDiscountTiers as any[]) || [];
     for (const tier of discountTiers) {
       if (createBookingDto.storageDays >= tier.days) {
@@ -37,7 +34,6 @@ export class BookingsService {
 
     totalPrice -= discountApplied;
 
-    // Crear la reserva
     const booking = await this.prisma.booking.create({
       data: {
         userId,
@@ -107,7 +103,7 @@ export class BookingsService {
     });
 
     if (!booking) {
-      throw new NotFoundException('Reserva no encontrada');
+      throw new NotFoundException('Booking not found');
     }
 
     return booking;
@@ -150,5 +146,20 @@ export class BookingsService {
       completedBookings,
       totalRevenue,
     };
+  }
+
+  async updateStatus(id: string, userId: string, status: string) {
+    const booking = await this.prisma.booking.findFirst({
+      where: { id, userId },
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    return this.prisma.booking.update({
+      where: { id },
+      data: { status },
+    });
   }
 }

@@ -2,6 +2,7 @@ import {
   Controller, 
   Get, 
   Post, 
+  Patch,
   Body, 
   Param, 
   UseGuards,
@@ -22,7 +23,7 @@ export class BookingsController {
     return {
       success: true,
       data: booking,
-      message: 'Reserva creada exitosamente',
+      message: 'Booking created successfully',
     };
   }
 
@@ -37,10 +38,7 @@ export class BookingsController {
 
   @Get('stats')
   async getStats(@Request() req) {
-    const stats = await this.bookingsService.getDashboardStats(
-      req.user.id,
-      req.user.role
-    );
+    const stats = await this.bookingsService.getDashboardStats(req.user.id, req.user.role);
     return {
       success: true,
       data: stats,
@@ -50,6 +48,15 @@ export class BookingsController {
   @Get(':id')
   async findOne(@Request() req, @Param('id') id: string) {
     const booking = await this.bookingsService.findOne(id, req.user.id, req.user.role);
+    return {
+      success: true,
+      data: booking,
+    };
+  }
+
+  @Patch(':id')
+  async updateStatus(@Request() req, @Param('id') id: string, @Body() body: { status: string }) {
+    const booking = await this.bookingsService.updateStatus(id, req.user.id, body.status);
     return {
       success: true,
       data: booking,
