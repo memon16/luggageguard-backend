@@ -149,9 +149,9 @@ export class BookingsService {
     };
   }
 
- async updateStatus(id: string, userId: string, status: string) {
+async updateStatus(id: string, userId: string, status: string) {
   const booking = await this.prisma.booking.findFirst({
-    where: { id, userId },
+    where: { id },
   });
 
   if (!booking) {
