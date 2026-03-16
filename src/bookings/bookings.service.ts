@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class BookingsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   async create(userId: string, createBookingDto: CreateBookingDto) {
     const pricing = await this.prisma.pricingConfig.findFirst({
@@ -56,6 +60,16 @@ export class BookingsService {
         },
       },
     });
+
+   try {
+      await this.mailService.sendBookingConfirmation(
+        booking,
+        booking.user.email,
+        booking.user.firstName,
+      );
+    } catch (e) {
+      console.error('Error sending confirmation email:', e);
+    }
 
     return booking;
   }
@@ -152,15 +166,33 @@ export class BookingsService {
 async updateStatus(id: string, userId: string, status: string) {
   const booking = await this.prisma.booking.findFirst({
     where: { id },
+    include: {
+      user: {
+        select: { email: true, firstName: true }
+      }
+    }
   });
 
   if (!booking) {
     throw new NotFoundException('Booking not found');
   }
 
-  return this.prisma.booking.update({
+  const updated = await this.prisma.booking.update({
     where: { id },
     data: { status: status as any },
   });
+
+  try {
+    await this.mailService.sendStatusUpdate(
+      booking,
+      booking.user.email,
+      booking.user.firstName,
+      status,
+    );
+  } catch (e) {
+    console.error('Error sending status email:', e);
+  }
+
+  return updated;
 }
 }
