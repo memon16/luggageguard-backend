@@ -52,7 +52,7 @@ export class MailService {
     const message = statusMessages[newStatus] || `Your booking status: ${newStatus}`;
 
     await this.resend.emails.send({
-      from: 'LuggageGuard <bookings@luggageguard.miami>',
+      from: 'LuggageGuard <onboarding@resend.dev>',
       to: userEmail,
       subject: `${message} - LuggageGuard`,
       html: `
