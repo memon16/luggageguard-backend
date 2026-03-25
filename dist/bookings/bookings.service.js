@@ -12,9 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookingsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../common/prisma/prisma.service");
+const mail_service_1 = require("../mail/mail.service");
 let BookingsService = class BookingsService {
-    constructor(prisma) {
+    constructor(prisma, mailService) {
         this.prisma = prisma;
+        this.mailService = mailService;
     }
     async create(userId, createBookingDto) {
         const pricing = await this.prisma.pricingConfig.findFirst({
@@ -22,7 +24,7 @@ let BookingsService = class BookingsService {
             orderBy: { effectiveFrom: 'desc' },
         });
         if (!pricing) {
-            throw new common_1.NotFoundException('Configuración de precios no encontrada');
+            throw new common_1.NotFoundException('Pricing configuration not found');
         }
         const basePrice = Number(pricing.basePricePerBag) * createBookingDto.numberOfBags;
         const storagePrice = Number(pricing.pricePerDayPerBag) *
@@ -30,7 +32,7 @@ let BookingsService = class BookingsService {
             createBookingDto.storageDays;
         let totalPrice = basePrice + storagePrice;
         let discountApplied = 0;
-        const discountTiers = pricing.multiDayDiscountTiers;
+        const discountTiers = pricing.multiDayDiscountTiers || [];
         for (const tier of discountTiers) {
             if (createBookingDto.storageDays >= tier.days) {
                 discountApplied = totalPrice * (tier.discount / 100);
@@ -59,6 +61,12 @@ let BookingsService = class BookingsService {
                 },
             },
         });
+        try {
+            await this.mailService.sendBookingConfirmation(booking, booking.user.email, booking.user.firstName);
+        }
+        catch (e) {
+            console.error('Error sending confirmation email:', e);
+        }
         return booking;
     }
     async findAll(userId, userRole) {
@@ -72,6 +80,7 @@ let BookingsService = class BookingsService {
                         email: true,
                         firstName: true,
                         lastName: true,
+                        phone: true,
                     },
                 },
                 payment: true,
@@ -100,7 +109,7 @@ let BookingsService = class BookingsService {
             },
         });
         if (!booking) {
-            throw new common_1.NotFoundException('Reserva no encontrada');
+            throw new common_1.NotFoundException('Booking not found');
         }
         return booking;
     }
@@ -135,10 +144,35 @@ let BookingsService = class BookingsService {
             totalRevenue,
         };
     }
+    async updateStatus(id, userId, status) {
+        const booking = await this.prisma.booking.findFirst({
+            where: { id },
+            include: {
+                user: {
+                    select: { email: true, firstName: true }
+                }
+            }
+        });
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found');
+        }
+        const updated = await this.prisma.booking.update({
+            where: { id },
+            data: { status: status },
+        });
+        try {
+            await this.mailService.sendStatusUpdate(booking, booking.user.email, booking.user.firstName, status);
+        }
+        catch (e) {
+            console.error('Error sending status email:', e);
+        }
+        return updated;
+    }
 };
 exports.BookingsService = BookingsService;
 exports.BookingsService = BookingsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        mail_service_1.MailService])
 ], BookingsService);
 //# sourceMappingURL=bookings.service.js.map

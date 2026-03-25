@@ -15,6 +15,7 @@ export declare class BookingsController {
             };
         } & {
             id: string;
+            userId: string;
             pickupAddress: string;
             pickupLat: number;
             pickupLng: number;
@@ -32,6 +33,7 @@ export declare class BookingsController {
             totalPrice: import("@prisma/client/runtime/library").Decimal;
             discountApplied: import("@prisma/client/runtime/library").Decimal;
             status: import(".prisma/client").$Enums.BookingStatus;
+            operatorId: string | null;
             pickupConfirmedAt: Date | null;
             storageConfirmedAt: Date | null;
             deliveryConfirmedAt: Date | null;
@@ -39,8 +41,6 @@ export declare class BookingsController {
             internalNotes: string | null;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
-            operatorId: string | null;
         };
         message: string;
     }>;
@@ -50,6 +50,7 @@ export declare class BookingsController {
             user: {
                 id: string;
                 email: string;
+                phone: string;
                 firstName: string;
                 lastName: string;
             };
@@ -58,15 +59,16 @@ export declare class BookingsController {
                 status: import(".prisma/client").$Enums.PaymentStatus;
                 createdAt: Date;
                 updatedAt: Date;
-                bookingId: string;
                 stripePaymentIntentId: string;
                 amount: import("@prisma/client/runtime/library").Decimal;
                 currency: string;
                 paymentMethod: string | null;
                 receiptUrl: string | null;
+                bookingId: string;
             };
         } & {
             id: string;
+            userId: string;
             pickupAddress: string;
             pickupLat: number;
             pickupLng: number;
@@ -84,6 +86,7 @@ export declare class BookingsController {
             totalPrice: import("@prisma/client/runtime/library").Decimal;
             discountApplied: import("@prisma/client/runtime/library").Decimal;
             status: import(".prisma/client").$Enums.BookingStatus;
+            operatorId: string | null;
             pickupConfirmedAt: Date | null;
             storageConfirmedAt: Date | null;
             deliveryConfirmedAt: Date | null;
@@ -91,8 +94,6 @@ export declare class BookingsController {
             internalNotes: string | null;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
-            operatorId: string | null;
         })[];
     }>;
     getStats(req: any): Promise<{
@@ -119,15 +120,16 @@ export declare class BookingsController {
                 status: import(".prisma/client").$Enums.PaymentStatus;
                 createdAt: Date;
                 updatedAt: Date;
-                bookingId: string;
                 stripePaymentIntentId: string;
                 amount: import("@prisma/client/runtime/library").Decimal;
                 currency: string;
                 paymentMethod: string | null;
                 receiptUrl: string | null;
+                bookingId: string;
             };
         } & {
             id: string;
+            userId: string;
             pickupAddress: string;
             pickupLat: number;
             pickupLng: number;
@@ -145,6 +147,7 @@ export declare class BookingsController {
             totalPrice: import("@prisma/client/runtime/library").Decimal;
             discountApplied: import("@prisma/client/runtime/library").Decimal;
             status: import(".prisma/client").$Enums.BookingStatus;
+            operatorId: string | null;
             pickupConfirmedAt: Date | null;
             storageConfirmedAt: Date | null;
             deliveryConfirmedAt: Date | null;
@@ -152,8 +155,40 @@ export declare class BookingsController {
             internalNotes: string | null;
             createdAt: Date;
             updatedAt: Date;
+        };
+    }>;
+    updateStatus(req: any, id: string, body: {
+        status: string;
+    }): Promise<{
+        success: boolean;
+        data: {
+            id: string;
             userId: string;
+            pickupAddress: string;
+            pickupLat: number;
+            pickupLng: number;
+            pickupDate: Date;
+            pickupTimeSlot: string;
+            numberOfBags: number;
+            storageDays: number;
+            deliveryAddress: string;
+            deliveryLat: number;
+            deliveryLng: number;
+            deliveryDate: Date;
+            deliveryTimeSlot: string;
+            basePrice: import("@prisma/client/runtime/library").Decimal;
+            storagePrice: import("@prisma/client/runtime/library").Decimal;
+            totalPrice: import("@prisma/client/runtime/library").Decimal;
+            discountApplied: import("@prisma/client/runtime/library").Decimal;
+            status: import(".prisma/client").$Enums.BookingStatus;
             operatorId: string | null;
+            pickupConfirmedAt: Date | null;
+            storageConfirmedAt: Date | null;
+            deliveryConfirmedAt: Date | null;
+            specialInstructions: string | null;
+            internalNotes: string | null;
+            createdAt: Date;
+            updatedAt: Date;
         };
     }>;
 }

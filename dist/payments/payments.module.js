@@ -6,20 +6,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BookingsModule = void 0;
+exports.PaymentsModule = void 0;
 const common_1 = require("@nestjs/common");
-const bookings_controller_1 = require("./bookings.controller");
-const bookings_service_1 = require("./bookings.service");
-const mail_module_1 = require("../mail/mail.module");
-let BookingsModule = class BookingsModule {
+const payments_controller_1 = require("./payments.controller");
+const payments_service_1 = require("./payments.service");
+const prisma_module_1 = require("../common/prisma/prisma.module");
+let PaymentsModule = class PaymentsModule {
 };
-exports.BookingsModule = BookingsModule;
-exports.BookingsModule = BookingsModule = __decorate([
+exports.PaymentsModule = PaymentsModule;
+exports.PaymentsModule = PaymentsModule = __decorate([
     (0, common_1.Module)({
-        imports: [mail_module_1.MailModule],
-        controllers: [bookings_controller_1.BookingsController],
-        providers: [bookings_service_1.BookingsService],
-        exports: [bookings_service_1.BookingsService],
+        imports: [prisma_module_1.PrismaModule],
+        controllers: [payments_controller_1.PaymentsController],
+        providers: [payments_service_1.PaymentsService],
     })
-], BookingsModule);
-//# sourceMappingURL=bookings.module.js.map
+], PaymentsModule);
+//# sourceMappingURL=payments.module.js.map

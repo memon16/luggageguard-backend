@@ -26,7 +26,7 @@ let BookingsController = class BookingsController {
         return {
             success: true,
             data: booking,
-            message: 'Reserva creada exitosamente',
+            message: 'Booking created successfully',
         };
     }
     async findAll(req) {
@@ -45,6 +45,13 @@ let BookingsController = class BookingsController {
     }
     async findOne(req, id) {
         const booking = await this.bookingsService.findOne(id, req.user.id, req.user.role);
+        return {
+            success: true,
+            data: booking,
+        };
+    }
+    async updateStatus(req, id, body) {
+        const booking = await this.bookingsService.updateStatus(id, req.user.id, body.status);
         return {
             success: true,
             data: booking,
@@ -82,6 +89,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], BookingsController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", Promise)
+], BookingsController.prototype, "updateStatus", null);
 exports.BookingsController = BookingsController = __decorate([
     (0, common_1.Controller)('bookings'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

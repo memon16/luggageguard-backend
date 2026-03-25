@@ -7,19 +7,17 @@ const app_module_1 = require("./app.module");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.enableCors({
-        origin: [
-            'http://localhost:3000',
-            'http://localhost:3001',
-            process.env.FRONTEND_URL || 'https://luggageguard.vercel.app',
-        ],
+        origin: '*',
         credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
     });
+    app.setGlobalPrefix('api');
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
     }));
-    app.setGlobalPrefix('api');
     const config = new swagger_1.DocumentBuilder()
         .setTitle('LuggageGuard API')
         .setDescription('API documentation for LuggageGuard luggage storage platform')
