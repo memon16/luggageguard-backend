@@ -11,7 +11,7 @@ export class MailService {
 
   async sendBookingConfirmation(booking: any, userEmail: string, userName: string) {
     await this.resend.emails.send({
-      from: 'LuggageGuard <onboarding@resend.dev>',
+      from: 'LuggageGuard <bookings@luggageguard.miami>',
       to: userEmail,
       subject: '✅ Booking Confirmed - LuggageGuard',
       html: `
@@ -52,7 +52,7 @@ export class MailService {
     const message = statusMessages[newStatus] || `Your booking status: ${newStatus}`;
 
     await this.resend.emails.send({
-      from: 'LuggageGuard <onboarding@resend.dev>',
+      from: 'LuggageGuard <bookings@luggageguard.miami>',
       to: userEmail,
       subject: `${message} - LuggageGuard`,
       html: `
