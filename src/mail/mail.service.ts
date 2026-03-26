@@ -74,4 +74,43 @@ export class MailService {
       `,
     });
   }
+
+  async sendAdminNewBooking(booking: any, userEmail: string, userName: string, userPhone: string) {
+    await this.resend.emails.send({
+      from: 'LuggageGuard <bookings@luggageguard.miami>',
+      to: 'memon8503235064@gmail.com',
+      subject: `🆕 New Booking - ${userName} - $${Number(booking.totalPrice).toFixed(2)}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #7c3aed; padding: 30px; text-align: center;">
+            <h1 style="color: white; margin: 0;">New Booking Received 🧳</h1>
+          </div>
+          <div style="padding: 30px; background: #f9fafb;">
+            <h2>Customer Details</h2>
+            <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p><strong>👤 Name:</strong> ${userName}</p>
+              <p><strong>📧 Email:</strong> ${userEmail}</p>
+              <p><strong>📞 Phone:</strong> ${userPhone || 'Not provided'}</p>
+            </div>
+            <h2>Booking Details</h2>
+            <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p><strong>Booking ID:</strong> #${booking.id.slice(0, 8).toUpperCase()}</p>
+              <p><strong>📍 Pickup:</strong> ${booking.pickupAddress}</p>
+              <p><strong>📅 Pickup Date:</strong> ${new Date(booking.pickupDate).toLocaleDateString()} • ${booking.pickupTimeSlot}</p>
+              <p><strong>🎒 Bags:</strong> ${booking.numberOfBags}</p>
+              <p><strong>📦 Storage:</strong> ${booking.storageDays} day(s)</p>
+              <p><strong>🚚 Delivery:</strong> ${booking.deliveryAddress}</p>
+              <p><strong>📅 Delivery Date:</strong> ${new Date(booking.deliveryDate).toLocaleDateString()} • ${booking.deliveryTimeSlot}</p>
+              ${booking.specialInstructions ? `<p><strong>📝 Instructions:</strong> ${booking.specialInstructions}</p>` : ''}
+              <hr/>
+              <p style="font-size: 20px;"><strong>Total: $${Number(booking.totalPrice).toFixed(2)}</strong></p>
+            </div>
+            <a href="https://luggageguard.miami/admin" style="display:inline-block; background:#7c3aed; color:white; padding:12px 24px; border-radius:8px; text-decoration:none; font-weight:bold;">
+              View in Admin Panel →
+            </a>
+          </div>
+        </div>
+      `,
+    });
+  }
 }
