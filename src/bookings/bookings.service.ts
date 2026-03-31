@@ -61,7 +61,7 @@ export class BookingsService {
       },
     });
 
-   try {
+    try {
       await this.mailService.sendBookingConfirmation(
         booking,
         booking.user.email,
@@ -69,6 +69,17 @@ export class BookingsService {
       );
     } catch (e) {
       console.error('Error sending confirmation email:', e);
+    }
+
+    try {
+      await this.mailService.sendAdminNewBooking(
+        booking,
+        booking.user.email,
+        `${booking.user.firstName} ${booking.user.lastName}`,
+        booking.user.phone,
+      );
+    } catch (e) {
+      console.error('Error sending admin notification:', e);
     }
 
     return booking;
@@ -163,36 +174,36 @@ export class BookingsService {
     };
   }
 
-async updateStatus(id: string, userId: string, status: string) {
-  const booking = await this.prisma.booking.findFirst({
-    where: { id },
-    include: {
-      user: {
-        select: { email: true, firstName: true }
+  async updateStatus(id: string, userId: string, status: string) {
+    const booking = await this.prisma.booking.findFirst({
+      where: { id },
+      include: {
+        user: {
+          select: { email: true, firstName: true }
+        }
       }
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
     }
-  });
 
-  if (!booking) {
-    throw new NotFoundException('Booking not found');
+    const updated = await this.prisma.booking.update({
+      where: { id },
+      data: { status: status as any },
+    });
+
+    try {
+      await this.mailService.sendStatusUpdate(
+        booking,
+        booking.user.email,
+        booking.user.firstName,
+        status,
+      );
+    } catch (e) {
+      console.error('Error sending status email:', e);
+    }
+
+    return updated;
   }
-
-  const updated = await this.prisma.booking.update({
-    where: { id },
-    data: { status: status as any },
-  });
-
-  try {
-    await this.mailService.sendStatusUpdate(
-      booking,
-      booking.user.email,
-      booking.user.firstName,
-      status,
-    );
-  } catch (e) {
-    console.error('Error sending status email:', e);
-  }
-
-  return updated;
-}
 }
