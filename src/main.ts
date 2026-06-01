@@ -9,11 +9,15 @@ async function bootstrap() {
 
   // Enable CORS - DEBE IR PRIMERO
   app.enableCors({
-    origin: '*',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  });
+  origin: [
+    'https://luggageguard.miami',
+    'https://www.luggageguard.miami',
+    'http://localhost:3000',
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
 
   // API prefix
   app.setGlobalPrefix('api');
