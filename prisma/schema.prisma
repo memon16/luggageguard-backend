@@ -106,8 +106,9 @@ model Booking {
   deliveryConfirmedAt DateTime?
   
   // Notes
-  specialInstructions String?
+   specialInstructions String?
   internalNotes       String?
+  photoUrl            String?
   
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt

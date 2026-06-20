@@ -2,12 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { MailService } from '../mail/mail.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class BookingsService {
   constructor(
     private prisma: PrismaService,
     private mailService: MailService,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   async create(userId: string, createBookingDto: CreateBookingDto) {
@@ -205,5 +207,16 @@ export class BookingsService {
     }
 
     return updated;
+  }
+
+  async uploadPhoto(bookingId: string, fileBuffer: Buffer) {
+    const photoUrl = await this.cloudinaryService.uploadImage(fileBuffer, bookingId);
+
+    const booking = await this.prisma.booking.update({
+      where: { id: bookingId },
+      data: { photoUrl },
+    });
+
+    return booking;
   }
 }

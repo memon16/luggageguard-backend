@@ -6,8 +6,11 @@ import {
   Body, 
   Param, 
   UseGuards,
-  Request 
+  Request,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -57,6 +60,16 @@ export class BookingsController {
   @Patch(':id')
   async updateStatus(@Request() req, @Param('id') id: string, @Body() body: { status: string }) {
     const booking = await this.bookingsService.updateStatus(id, req.user.id, body.status);
+    return {
+      success: true,
+      data: booking,
+    };
+  }
+
+  @Post(':id/photo')
+  @UseInterceptors(FileInterceptor('photo'))
+  async uploadPhoto(@Param('id') id: string, @UploadedFile() file: any) {
+    const booking = await this.bookingsService.uploadPhoto(id, file.buffer);
     return {
       success: true,
       data: booking,
