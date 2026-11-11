@@ -113,4 +113,72 @@ export class MailService {
       `,
     });
   }
+
+  async sendInvoice(booking: any, userEmail: string, userName: string) {
+    const base = Number(booking.basePrice);
+    const storage = Number(booking.storagePrice);
+    const discount = Number(booking.discountApplied);
+    const total = Number(booking.totalPrice);
+    const tax = Math.max(total - (base + storage - discount), 0);
+
+    await this.resend.emails.send({
+      from: 'LuggageGuard <bookings@luggageguard.miami>',
+      to: userEmail,
+      subject: `🧾 Your Invoice - LuggageGuard #${booking.id.slice(0, 8).toUpperCase()}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #1d4ed8; padding: 30px; text-align: center;">
+            <h1 style="color: white; margin: 0;">LuggageGuard 🧳</h1>
+            <p style="color: #bfdbfe; margin: 6px 0 0;">Luggage Storage & Delivery · Miami</p>
+          </div>
+          <div style="padding: 30px; background: #f9fafb;">
+            <h2>Hi ${userName}! Your bags have been delivered. 🎉</h2>
+            <p style="color: #666;">Thank you for choosing LuggageGuard. Here is your invoice:</p>
+
+            <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p><strong>Invoice #:</strong> LG-${booking.id.slice(0, 8).toUpperCase()}</p>
+              <p><strong>Date:</strong> ${new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York' })}</p>
+              <hr/>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr style="background: #eff6ff;">
+                  <th style="text-align: left; padding: 8px; font-size: 12px; color: #1d4ed8;">SERVICE</th>
+                  <th style="text-align: right; padding: 8px; font-size: 12px; color: #1d4ed8;">AMOUNT</th>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; font-size: 13px;">Base price (${booking.numberOfBags} bag(s))</td>
+                  <td style="padding: 8px; font-size: 13px; text-align: right;">$${base.toFixed(2)}</td>
+                </tr>
+                <tr style="background: #f9fafb;">
+                  <td style="padding: 8px; font-size: 13px;">Storage / handling</td>
+                  <td style="padding: 8px; font-size: 13px; text-align: right;">$${storage.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; font-size: 13px;">Pickup & Delivery</td>
+                  <td style="padding: 8px; font-size: 13px; text-align: right; color: #16a34a;">FREE</td>
+                </tr>
+                ${discount > 0 ? `
+                <tr>
+                  <td style="padding: 8px; font-size: 13px; color: #16a34a;">Discount</td>
+                  <td style="padding: 8px; font-size: 13px; text-align: right; color: #16a34a;">-$${discount.toFixed(2)}</td>
+                </tr>` : ''}
+                <tr>
+                  <td style="padding: 8px; font-size: 13px;">Tax (7%)</td>
+                  <td style="padding: 8px; font-size: 13px; text-align: right;">$${tax.toFixed(2)}</td>
+                </tr>
+                <tr style="border-top: 2px solid #e2e8f0;">
+                  <td style="padding: 8px; font-weight: bold;">TOTAL</td>
+                  <td style="padding: 8px; font-weight: bold; text-align: right; color: #1d4ed8; font-size: 18px;">$${total.toFixed(2)}</td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="margin-top: 20px; text-align: center; color: #666; font-size: 12px;">
+              <p>Questions? Contact us at luggageGuardinfo@gmail.com</p>
+              <p>+1 (305) 878-0317 · luggageguard.miami</p>
+            </div>
+          </div>
+        </div>
+      `,
+    });
+  }
 }

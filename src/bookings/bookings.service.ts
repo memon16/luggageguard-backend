@@ -192,7 +192,7 @@ export class BookingsService {
     };
   }
 
-  async updateStatus(id: string, userId: string, status: string) {
+    async updateStatus(id: string, userId: string, status: string) {
     const booking = await this.prisma.booking.findFirst({
       where: { id },
       include: {
@@ -220,6 +220,18 @@ export class BookingsService {
       );
     } catch (e) {
       console.error('Error sending status email:', e);
+    }
+
+    if (status === 'DELIVERED') {
+      try {
+        await this.mailService.sendInvoice(
+          booking,
+          booking.user.email,
+          booking.user.firstName,
+        );
+      } catch (e) {
+        console.error('Error sending invoice:', e);
+      }
     }
 
     return updated;
