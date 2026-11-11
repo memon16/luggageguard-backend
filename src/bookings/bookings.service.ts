@@ -22,23 +22,39 @@ export class BookingsService {
       throw new NotFoundException('Pricing configuration not found');
     }
 
-    const basePrice = Number(pricing.basePricePerBag) * createBookingDto.numberOfBags;
-    const storagePrice = 
-      Number(pricing.pricePerDayPerBag) * 
-      createBookingDto.numberOfBags * 
-      createBookingDto.storageDays;
+        const bags = createBookingDto.numberOfBags;
+    const days = createBookingDto.storageDays;
 
-    let totalPrice = basePrice + storagePrice;
+    const isSameDay =
+      new Date(createBookingDto.pickupDate).toISOString().split('T')[0] ===
+      new Date(createBookingDto.deliveryDate).toISOString().split('T')[0];
+
+    const basePrice = Number(pricing.basePricePerBag) * bags;
+
+    const storagePrice =
+      isSameDay || days === 0
+        ? 4 * bags
+        : Number(pricing.pricePerDayPerBag) * bags * days;
+
+    let subtotal = basePrice + storagePrice;
     let discountApplied = 0;
 
-    const discountTiers = (pricing.multiDayDiscountTiers as any[]) || [];
-    for (const tier of discountTiers) {
-      if (createBookingDto.storageDays >= tier.days) {
-        discountApplied = totalPrice * (tier.discount / 100);
+    if (!isSameDay && days > 0) {
+      const discountTiers = (pricing.multiDayDiscountTiers as any[]) || [];
+      for (const tier of discountTiers) {
+        if (days >= tier.days) {
+          discountApplied = subtotal * (tier.discount / 100);
+        }
       }
     }
 
-    totalPrice -= discountApplied;
+    if (bags >= 3) {
+      discountApplied += subtotal * 0.05;
+    }
+
+    subtotal -= discountApplied;
+    const tax = subtotal * 0.07;
+    const totalPrice = Math.round((subtotal + tax) * 100) / 100;
 
     const booking = await this.prisma.booking.create({
       data: {
