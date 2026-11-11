@@ -192,9 +192,11 @@ export class BookingsService {
     };
   }
 
-    async updateStatus(id: string, userId: string, status: string) {
+         async updateStatus(id: string, userId: string, userRole: string, status: string) {
+    const isStaff = userRole === 'ADMIN' || userRole === 'OPERATOR';
+
     const booking = await this.prisma.booking.findFirst({
-      where: { id },
+      where: isStaff ? { id } : { id, userId },
       include: {
         user: {
           select: { email: true, firstName: true }
@@ -204,6 +206,12 @@ export class BookingsService {
 
     if (!booking) {
       throw new NotFoundException('Booking not found');
+    }
+
+    if (!isStaff) {
+      if (status !== 'CANCELLED' || booking.status !== 'PENDING') {
+        throw new ForbiddenException('You can only cancel your own pending bookings');
+      }
     }
 
     const updated = await this.prisma.booking.update({

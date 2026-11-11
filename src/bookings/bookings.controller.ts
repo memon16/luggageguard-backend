@@ -59,7 +59,7 @@ export class BookingsController {
 
   @Patch(':id')
   async updateStatus(@Request() req, @Param('id') id: string, @Body() body: { status: string }) {
-    const booking = await this.bookingsService.updateStatus(id, req.user.id, body.status);
+    const booking = await this.bookingsService.updateStatus(id, req.user.id, req.user.role, body.status);
     return {
       success: true,
       data: booking,
