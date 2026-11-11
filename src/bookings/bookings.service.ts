@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { MailService } from '../mail/mail.service';
@@ -236,7 +236,31 @@ export class BookingsService {
 
     return updated;
   }
+async updateAddress(
+    id: string,
+    userId: string,
+    data: { pickupAddress?: string; deliveryAddress?: string },
+  ) {
+    const booking = await this.prisma.booking.findFirst({
+      where: { id, userId },
+    });
 
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    if (booking.status !== 'PENDING') {
+      throw new BadRequestException('Only PENDING bookings can be edited');
+    }
+
+    return this.prisma.booking.update({
+      where: { id },
+      data: {
+        ...(data.pickupAddress && { pickupAddress: data.pickupAddress }),
+        ...(data.deliveryAddress && { deliveryAddress: data.deliveryAddress }),
+      },
+    });
+  }
   async uploadPhoto(bookingId: string, fileBuffer: Buffer) {
     const photoUrl = await this.cloudinaryService.uploadImage(fileBuffer, bookingId);
 

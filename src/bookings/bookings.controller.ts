@@ -66,6 +66,19 @@ export class BookingsController {
     };
   }
 
+  @Patch(':id/address')
+  async updateAddress(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() body: { pickupAddress?: string; deliveryAddress?: string },
+  ) {
+    const booking = await this.bookingsService.updateAddress(id, req.user.id, body);
+    return {
+      success: true,
+      data: booking,
+    };
+  }
+
   @Post(':id/photo')
   @UseInterceptors(FileInterceptor('photo'))
   async uploadPhoto(@Param('id') id: string, @UploadedFile() file: any) {
