@@ -269,14 +269,20 @@ async updateAddress(
       },
     });
   }
-  async uploadPhoto(bookingId: string, fileBuffer: Buffer) {
+    async uploadPhoto(bookingId: string, userRole: string, fileBuffer: Buffer) {
+    if (userRole !== 'ADMIN' && userRole !== 'OPERATOR') {
+      throw new ForbiddenException('Only staff can upload photos');
+    }
+
+    if (!fileBuffer) {
+      throw new BadRequestException('No photo received');
+    }
+
     const photoUrl = await this.cloudinaryService.uploadImage(fileBuffer, bookingId);
 
-    const booking = await this.prisma.booking.update({
+    return this.prisma.booking.update({
       where: { id: bookingId },
       data: { photoUrl },
     });
-
-    return booking;
   }
 }

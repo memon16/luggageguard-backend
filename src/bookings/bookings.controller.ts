@@ -79,10 +79,10 @@ export class BookingsController {
     };
   }
 
-  @Post(':id/photo')
+    @Post(':id/photo')
   @UseInterceptors(FileInterceptor('photo'))
-  async uploadPhoto(@Param('id') id: string, @UploadedFile() file: any) {
-    const booking = await this.bookingsService.uploadPhoto(id, file.buffer);
+  async uploadPhoto(@Request() req, @Param('id') id: string, @UploadedFile() file: any) {
+    const booking = await this.bookingsService.uploadPhoto(id, req.user.role, file?.buffer);
     return {
       success: true,
       data: booking,
